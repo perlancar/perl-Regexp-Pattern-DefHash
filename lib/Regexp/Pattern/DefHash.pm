@@ -12,11 +12,9 @@ my @prop_examples = (
     {str=>'p', matches=>1},
     {str=>'_', matches=>1},
     {str=>'prop', matches=>1},
-    {str=>'prop2', matches=>1},
+    {str=>'Prop2', matches=>1},
     {str=>'prop_', matches=>1},
 
-    {str=>'Prop', matches=>0, summary=>'Uppercase not allowed (1)'},
-    {str=>'_Prop', matches=>0, summary=>'Uppercase not allowed (2)'},
     {str=>'0prop', matches=>0, summary=>'Cannot start with digit'},
     {str=>'prop-erty', matches=>0, summary=>'Invalid character: dash'},
     {str=>'property ', matches=>0, summary=>'Invalid character: whitespace'},
@@ -28,14 +26,9 @@ my @attr_examples = (
     {str=>'.attr1.subattr2', matches=>1},
     {str=>'prop.attr1', matches=>1},
     {str=>'_prop._attr1', matches=>1},
-    {str=>'prop.attr1.subattr2.subattr3', matches=>1},
+    {str=>'Prop.attr1.subattr2.Subattr3', matches=>1},
     {str=>'_prop.attr1', matches=>1},
 
-    {str=>'Prop.attr', matches=>0, summary=>'Uppercase not allowed (1)'},
-    {str=>'_Prop.attr', matches=>0, summary=>'Uppercase not allowed (2)'},
-    {str=>'.Attr', matches=>0, summary=>'Uppercase not allowed (3)'},
-    {str=>'.attr.Subattr', matches=>0, summary=>'Uppercase not allowed (4)'},
-    {str=>'prop.Subattr', matches=>0, summary=>'Uppercase not allowed (5)'},
     {str=>'.0attr', matches=>0, summary=>'Cannot start with digit (1)'},
     {str=>'prop.0attr', matches=>0, summary=>'Cannot start with digit (2)'},
     {str=>'prop.attr.0subattr', matches=>0, summary=>'Cannot start with digit (3)'},
@@ -53,8 +46,9 @@ my @attr_examples = (
 );
 
 my $patspec_prop_or_attr = {
-    pat => qr/\A(?:[a-z_][a-z0-9_]*|(?:[a-z_][a-z0-9_]*)?(?:\.[a-z_][a-z0-9_]*)+)\z/,
-    tags => ['anchored'],
+    summary => 'Attribute key or property key',
+    pat => qr/\A(?:([A-Za-z_][A-Za-z0-9_]*)|([A-Za-z_][A-Za-z0-9_]*)?\.([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*))\z/,
+    tags => ['anchored', 'capturing'],
     description => <<'_',
 
 All keys in defhash must match this pattern.
@@ -70,8 +64,8 @@ _
 
 our %RE = (
     prop => {
-        summary => 'Property',
-        pat => qr/\A[a-z_][a-z0-9_]*\z/,
+        summary => 'Property key',
+        pat => qr/\A[A-Za-z_][A-Za-z0-9_]*\z/,
         tags => ['anchored'],
         examples => [
             @prop_examples,
@@ -83,8 +77,9 @@ our %RE = (
         ],
     },
     attr => {
-        pat => qr/\A(?:[a-z_][a-z0-9_]*)?(?:\.[a-z_][a-z0-9_]*)+\z/,
-        tags => ['anchored'],
+        summary => 'Attribute key',
+        pat => qr/\A([A-Za-z_][A-Za-z0-9_]*)?\.([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)\z/,
+        tags => ['anchored', 'capturing'],
         examples => [
             @attr_examples,
 
@@ -92,6 +87,19 @@ our %RE = (
 
             {str=>'p', matches=>0, summary=>'Property, not attribute'},
             {str=>'_', matches=>0, summary=>'Property, not attribute'},
+        ],
+    },
+
+    attr_part => {
+        summary => 'Attribute part in attribute key',
+        pat => qr/\A[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*\z/,
+        tags => ['anchored'],
+        examples => [
+            {str=>'', matches=>0, summary=>'Empty'},
+
+            {str=>'p', matches=>1},
+            {str=>'p.q', matches=>1},
+            {str=>'.p', matches=>0, summary=>'Dot prefix must not be included'},
         ],
     },
 
